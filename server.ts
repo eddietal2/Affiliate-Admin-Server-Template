@@ -6,11 +6,10 @@ const cors                    = require('cors');
 const dotenv                  = require('dotenv');
 
 // Routers
-const landingPageRoute = require('./routes/landing.route');
 const authRoute = require('./routes/auth.route');
 const productsRoute = require('./routes/products.route');
-const userProfileRoute = require('./routes/user-profile.route');
-const adminRoute = require('./routes/admin.route');
+const usersRoute = require('./routes/users.route');
+const reportsRoute = require('./routes/reports.route');
 
 
 // Configure Environment Variables
@@ -23,7 +22,7 @@ mongoose
   // .set('useCreateIndex', true)
   // .set('useFindAndModify', false)
 
-  .connect(process.env.DB_HOST_DEV, {
+  .connect(process.env.DB_HOST, {
     useNewUrlParser: true, useUnifiedTopology: true
   })
 
@@ -36,11 +35,10 @@ app.use(cors());
 app.use(express.json());
 
 // API Routes
-app.use("/landing", landingPageRoute);
 app.use("/auth", authRoute);
 app.use("/products", productsRoute);
-app.use("/user-profile", userProfileRoute);
-app.use("/admin", adminRoute);
+app.use("/users", usersRoute);
+app.use("/reports", reportsRoute);
 
 // Listen on PORT
 const port = process.env.PORT || 3000;
