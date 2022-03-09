@@ -1,7 +1,7 @@
 {
-  "name": "affiliate-server-template",
+  "name": "admin-server",
   "version": "1.0.0",
-  "description": "Template Server for Affiliate Sites",
+  "description": "Admin Server for all sites",
   "main": "server.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
