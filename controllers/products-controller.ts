@@ -9,6 +9,17 @@ exports.getAllProducts = (req: any, res: any) => {
       })
 }
 
+exports.getFeaturedProducts = (req: any, res: any ) => {
+    Product.find((err: any, products: any) => {
+        console.log('Getting Featured Products...');
+        let featuredProducts = products.filter((product: any) => {
+            return product.featured == true;
+        })
+        return res.status(200).json(
+            featuredProducts)
+      })
+}
+
 exports.addProduct = (req: any, res: any) => {
 
     console.log('Adding Product');
