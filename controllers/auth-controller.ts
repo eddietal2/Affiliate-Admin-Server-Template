@@ -1,8 +1,8 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require("bcrypt");
 const User = require('../models/user.model.ts');
+const Admin = require('../models/admin.model.ts');
 const config = require('../config/default.json'); 
-const nodemailer = require('nodemailer');
 
 /**
  * 
@@ -12,13 +12,7 @@ const nodemailer = require('nodemailer');
 function createToken(user: any) {
     return jwt.sign(
       { 
-        id: user.id,
-        email: user.email, 
-        fullName: user.fullName, 
-        picture: user.picture, 
-        cartLength: user.cart.length, 
-        cart: user.cart, 
-        favorites: user.favoriteProducts, 
+        username: user.username,
       }, config.jwtSecret, {
         expiresIn: 200 // 86400 expires in 24 hours
       });
@@ -28,23 +22,26 @@ function createToken(user: any) {
 /**
  * Login
  * Handle Errors:
- *  - No Email
+ *  - No Username
  *  - Bad Email
  *  - No Password
  *  - Bad Password
  *  - Backend Error
  */
 exports.login = (req: any, res: any ) => {
-    console.log('Attempting to log in...')
+    console.log('Attempting to log in Admin...');
+    console.log(req.body.username);
+    console.log(req.body.password);
+    
 
     // No Email OR No Password
-    if (!req.body.email || !req.body.password) {
-        return res.status(400).send({ msg: 'You need to send email and password' });
+    if (!req.body.username || !req.body.password) {
+        return res.status(400).send({ msg: 'You need to send username and password' });
     }
   
-    User.findOne(
-      { email: req.body.email }, 
-      (err: any, user: any) => {
+    Admin.findOne(
+      { username: req.body.username }, 
+      (err: any, admin: any) => {
         // Backend Error
         if (err) {
             return res.status(400).send({ 
@@ -54,22 +51,18 @@ exports.login = (req: any, res: any ) => {
         }
         
         // Bad Email Error
-        if (!user) {
+        if (!admin) {
             return res.status(400).json({ msg: 'The user does not exist' });
         }
   
-        user.comparePassword(req.body.password, (err: any, isMatch: any) => {
+        admin.comparePassword(req.body.password, (err: any, isMatch: any) => {
             if (isMatch && !err) {
-                console.log('Logged in as: ' + user.email);
+                console.log('Logged in as: ' + admin.email);
                 // Successful Login
                 return res.status(200).json({
-                    msg: 'User @' + user.email + ' has logged in',
-                    token: createToken(user),
-                    fullName: user.fullName,
-                    picture: user.picture,
-                    email: user.email,
-                    cart: user.cart,
-                    favorites: user.favoriteProducts
+                    msg: 'User @' + admin.username + ' has logged in',
+                    token: createToken(admin),
+                    username: admin.username,
                 });
             } else {
                 // Bad Password
@@ -79,240 +72,52 @@ exports.login = (req: any, res: any ) => {
     });
 }
 /**
- * @param email
+ * @param username
  * @param password
- * @param fullName
- * @param picture
- * @param email
  */
 
 /**
- * Create a New User
- *  - Backend Error Finding Existing Users
- *  - User Already Exists
- *  - Backend Error Saving New User
+ * Create a New Admin
+ *  - Backend Error Finding Existing Admin
+ *  - Admin Already Exists
+ *  - Backend Error Saving New Admin
  *  - 
  */
 exports.register = (req: any, res: any) => {
     console.log(req.body);
-    let email = req.body.email;
+    let username = req.body.username;
     let password = req.body.password;
-    let fullName = req.body.fullName;
-    // let picture = req.body.picture;
 
-    User.findOne({ email: req.body.email }, (err: any, user: any) => {
+    Admin.findOne({ username }, (err: any, admin: any) => {
         if (err) {
             return res.status(400).json({ 'msg': err });
         }
 
-        if (user) {
-            return res.status(400).json({ msg: 'The user already exists' });
+        if (admin) {
+            return res.status(400).json({ msg: 'The admin already exists' });
         }
 
-        let newUser = User({
-          email,
+        let newAdmin = Admin({
+          username,
           password,
-          fullName,
           dateRegistered: Date.now()
           // picture
        });
-        newUser.save(
-          (err: any, user: any) => {
+        newAdmin.save(
+          (err: any, admin: any) => {
             if (err) {
                 console.log(err)
                 return res.status(400).json({ msg: err });
             }
-            if (!user) {
-                console.log('There was no user saved!')
-                return res.status(400).json({ msg: 'There was no user saved!' });
+            if (!admin) {
+                console.log('There was no admin saved!')
+                return res.status(400).json({ msg: 'There was no admin saved!' });
             }
             console.log('User registered!');
-            return res.status(200).json(user);
+            return res.status(200).json(admin);
         });
     });
     // return res.status(200).json({msg: "register"})
 }
-
-
-exports.changePasswordForgot = (req: any, res: any) => {
-    console.log(req.body);
-
-    if ( !req.body.oldPassword || !req.body.newPassword) {
-      return res.status(400).send('Please enter an old password and a new password')
-    }
-
-    else if (req.body.oldPassword === req.body.newPassword) {
-      console.log('New Password is the same as old password');
-      return res.status(400).send('Please enter a password that is different than your old password');
-    }
-      else {
-
-      console.log('Changing passsword..');
-      User.findOne({ email: req.body.email }, (err: any, user: { comparePassword: (arg0: any, arg1: (err: any, isMatch: any) => any) => void; password: any; }) => {
-        if (err) {
-          return res.status(400).json({ 'msg': err });
-        } else {
-          console.log(user);
-
-          user.comparePassword(req.body.oldPassword, (err: any, isMatch: boolean) => {
-
-            if (isMatch && !err) {
-
-              // Create new hashed password
-              bcrypt.genSalt(10, (err: any, salt: any) => {
-
-                if (err) {
-                    return err;
-                };
-
-                bcrypt.hash(req.body.newPassword, salt, (err: any, hash: string) => {
-                  console.log('New Password Hashed: ' + hash);
-                  let newPassword = hash;
-                  let filter = { password: user.password };
-                  let update = { password: newPassword }
-
-                  User.updateOne(filter, update)
-                    .then( (data: any) => {
-                      console.log('Updated Password: ' + JSON.stringify(data));
-                      return res.status(200).send(true);
-                    })
-                    .catch( (err: any) => {
-                      console.log(err);
-                      return res.status(400).end('There was an error');
-                    })
-                  })
-                })
-            } else {
-              console.log(isMatch);
-              return res.status(200).send(false);
-            }
-          })
-        }
-      })
-    }
-}
-
-/**
- * 
- */
-exports.sendRegisterCode = (req: any, res: any) => {
-
-  console.clear();
-  console.log(req.body);
-  let code = req.body.code;
-  let email = req.body.email;
-  // Set transport service which will send the emails
-  var transporter =  nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-          user: 'eddielacrosse2@gmail.com',
-          pass: 'taliaferro2',
-      },
-      debug: true, // show debug output
-      logger: true // log information in console
-  });
-
-//  configuration for email details
- const mailOptions = {
-  from: 'eddielacrosse2@gmail.com', // sender address
-  to: `${email}`, // list of receivers
-  subject: 'Affiliate Site Registration Code',
-  html:
-  `
-    <h1>Affiliate Site</h1>
-    <div style="width: 100px; height: 100px; background: lightgreen; text-align: center;">
-      <p style="padding-top: 3em;">Logo</p>
-    </div>
-    <h3 style="
-      font-size: 1.4em;
-      color: #888;
-    ">Here is your 4 digit code</h3>
-    <p style="font-size: 1.4em;">Please use this code on the website to complete your registration: </p>
-    <p style="
-      background: #dedede;
-      border-radius: 100px;
-      border: 2px solid #3cf63c;
-      width: 200px;
-      color: #3cf63c;
-      padding: 0.5em;
-      text-align: center;
-      font-size: 2em;
-      letter-spacing: 11px;">${code}</p>`,
-  };
-
- transporter.sendMail(mailOptions, function (err: any, info: any) {
-  if(err) {
-    console.log(err)
-    return res.status(400).json(err);
-  }
-  else {
-    console.log(info);
-    return res.status(200).json(info)
-  }
- });
-
-}
-
-/**
- * 
- */
-exports.sendForgotCode = (req: any, res: any) => {
-  
-  console.clear();
-  console.log(req.body);
-  let code = req.body.code;
-  let email = req.body.email;
-  // Set transport service which will send the emails
-  var transporter =  nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-          user: 'eddielacrosse2@gmail.com',
-          pass: 'taliaferro2',
-      },
-      debug: true, // show debug output
-      logger: true // log information in console
-  });
-
-//  configuration for email details
- const mailOptions = {
-  from: 'eddielacrosse2@gmail.com', // sender address
-  to: `${email}`, // list of receivers
-  subject: 'Affiliate Site Forgot Password Code',
-  html:
-  `
-    <h1>Affiliate Site</h1>
-    <div style="width: 100px; height: 100px; background: lightgreen; text-align: center;">
-      <p style="padding-top: 3em;">Logo</p>
-    </div>
-    <h3 style="
-      font-size: 1.4em;
-      color: #888;
-    ">Here is your 4 digit code</h3>
-    <p style="font-size: 1.4em;">Please use this code on the website to continue with resetting your passeword:  </p>
-    <p style="
-      background: #fff;
-      border-radius: 100px;
-      border: 2px solid #3cf63c;
-      width: 200px;
-      color: #3cf63c;
-      padding: 0.5em;
-      text-align: center;
-      font-size: 2em;
-      letter-spacing: 11px;">${code}</p>`,
-  };
-
- transporter.sendMail(mailOptions, function (err: any, info: any) {
-  if(err) {
-    console.log(err)
-    return res.status(400).json(err);
-  }
-  else {
-    // console.log(info);
-    return res.status(200).json(info)
-  }
- });
-  
-}
-
 
 export {}

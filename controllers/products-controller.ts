@@ -1,5 +1,6 @@
 const Product = require('../models/product.model.ts');
 
+
 export {}
 
 exports.getAllProducts = (req: any, res: any) => {
@@ -32,7 +33,7 @@ exports.addProduct = (req: any, res: any) => {
     let price = req.body.price;    
     let sample = req.body.sample;
 
-    let newProduct = new Product({
+    let newProduct = Product({
         title,
         apiID,
         datePosted,

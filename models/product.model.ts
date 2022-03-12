@@ -16,7 +16,7 @@ const ProductSchema = new mongoose.Schema(
       default: false
     },
     datePosted: {
-        type: Date
+        type: Number
     },
     description: {
       type: String,
