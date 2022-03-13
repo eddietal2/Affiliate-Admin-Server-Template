@@ -10,6 +10,7 @@ const authRoute = require('./routes/auth.route');
 const productsRoute = require('./routes/products.route');
 const usersRoute = require('./routes/users.route');
 const reportsRoute = require('./routes/reports.route');
+const landingPageRoute = require('./routes/landing-page.route');
 
 
 // Configure Environment Variables
@@ -39,6 +40,7 @@ app.use("/auth", authRoute);
 app.use("/products", productsRoute);
 app.use("/users", usersRoute);
 app.use("/reports", reportsRoute);
+app.use("/landing-page", landingPageRoute);
 
 // Listen on PORT
 const port = process.env.PORT || 4000;
