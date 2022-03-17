@@ -5,11 +5,13 @@ const ProductSchema = new mongoose.Schema(
   {
     apiID: {
       type: String,
-      maxlength: 15
+      maxlength: 15,
+      default: 'None'
     },
     title: {
       type: String,
-      maxlength: 140
+      maxlength: 140,
+      default: 'None'
     },
     featured: {
       type: Boolean,
@@ -20,7 +22,8 @@ const ProductSchema = new mongoose.Schema(
     },
     description: {
       type: String,
-      maxlength: 300
+      maxlength: 300,
+      default: 'None'
     },
     category: {
       type: String,
@@ -28,11 +31,13 @@ const ProductSchema = new mongoose.Schema(
     },
     rating: {
       type: Number,
-      maxlength: 1
+      maxlength: 1,
+      default: 0
     },
     duration: {
       type: Number,
-      maxlength: 500
+      maxlength: 500,
+      default: 0
     },
     price: {
       type: String,
@@ -40,7 +45,8 @@ const ProductSchema = new mongoose.Schema(
     },
     sample: {
       type: String,
-      maxlength: 700
+      maxlength: 700,
+      default: 'None'
     },
     reviews: {
       type: Array,

@@ -21,6 +21,80 @@ exports.getFeaturedProducts = (req: any, res: any ) => {
       })
 }
 
+exports.featureProduct = (req: any, res: any) => {
+    console.log(req.body);
+
+    let id = req.body._id;
+
+    // Check if there are already 6 featured Products
+    Product.find((err: any, products: any) => {
+        console.log('Getting Featured Products...');
+        let featuredProducts = products.filter((product: any) => {
+             product.featured == true;
+        })
+        if(err) {
+            console.log(err);
+            return res.status(400).json(err);
+        }
+        
+        if(featuredProducts.length >= 6) {
+            return res.status(400).json({msg: 'There are already 6 Featured Products'})
+        }
+
+        
+      })
+    
+    // Update that Product's featured property
+    Product.findOneAndUpdate(
+        {_id: id},
+        {$set: {featured: true}},
+        {new: true},
+        (err: any, products: any) => {
+            if(err) {
+                console.log(err);
+                return res.status(400).json(err);
+            }
+            if(!products) {
+                console.log('No Product with that ID');
+                return res.status(400).json({msg: 'No Product with that ID'});
+            }
+            if(products) {
+                console.log('Successfully Featured Product!');
+                return res.status(200).json({msg: 'Successfully Featured Product!'});
+            }
+        }
+    )
+    
+
+}
+exports.unfeatureProduct = (req: any, res: any) => {
+    console.log(req.body);
+
+    let id = req.body._id;
+
+    Product.findOneAndUpdate(
+        {_id: id},
+        {$set: {featured: false}},
+        {new: true},
+        (err: any, product: any) => {
+            if(err) {
+                console.log(err);
+                return res.status(400).json(err);
+            }
+            if(!product) {
+                console.log('No Product with that ID');
+                return res.status(400).json({msg: 'No Product with that ID'});
+            }
+            if(product) {
+                console.log('Successfully Unfeatured Product!');
+                return res.status(200).json({msg: 'Successfully Unfeatured Product!'});
+            }
+        }
+    )
+
+}
+
+
 exports.addProduct = (req: any, res: any) => {
 
     console.log('Adding Product');
