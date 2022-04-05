@@ -18,10 +18,10 @@ const LandingPageSchema = new mongoose.Schema(
       type: Array,
       default: []
     },
-    whyHypnosis: {
+    description: {
       type: String,
       maxlength: 800,
-      default: 'Default Why Hypnosis Text'
+      default: 'Default description.'
     },
     membershipMessage: {
       type: String,
