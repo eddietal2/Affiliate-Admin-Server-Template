@@ -1,5 +1,5 @@
 const LandingPage = require('../models/landing-page.model.ts');
-
+const Product = require('../models/product.model.ts'); 
 
 export {}
 
@@ -12,6 +12,7 @@ exports.getLandingPageInfo = (req: any, res: any) => {
             console.clear();
             console.log('Getting Landing Page Info: ');
             console.log(landingPageInfo);
+
             return res.status(200).json({
                 msg: 'Landing Page Information',
                 landingPageInfo
@@ -111,21 +112,21 @@ exports.editSample = (req: any, res: any) => {
       })
 }
 
-exports.editWhyHypnosis = (req: any, res: any) => {
+exports.editDescription = (req: any, res: any) => {
     let id = req.body.id;
-    let newWhyHypnosis = req.body.newWhyHypnosis;
+    let newDescription = req.body.newDescription;
     console.log(id);
     
     LandingPage.findByIdAndUpdate(
         id,
         { $set: {
-            'whyHypnosis': newWhyHypnosis
+            'description': newDescription
         } },
         { new: true },
         ( err: any, landingPageInfo: any ) => {
 
         if(err) return res.status(400).json(err);
-        if(!landingPageInfo) return res.status(400).json({msg: 'There is no Sample!'});
+        if(!landingPageInfo) return res.status(400).json({msg: 'There is no Landing Page Info!'});
         if(landingPageInfo) {
             console.log('Landing Page ==: ');
             console.log(landingPageInfo);

@@ -1,4 +1,5 @@
 const Product = require('../models/product.model.ts');
+const LandingPage = require('../models/landing-page.model.ts');
 
 
 export {}
@@ -29,42 +30,62 @@ exports.featureProduct = (req: any, res: any) => {
     // Check if there are already 6 featured Products
     Product.find((err: any, products: any) => {
         console.log('Getting Featured Products...');
-        let featuredProducts = products.filter((product: any) => {
-             product.featured == true;
+
+        let featuredProducts: any[] = [];
+        products.filter((product: any) => {
+            console.log(product.featured);
+            
+             if(product.featured) {
+                featuredProducts.push(product._id)
+             }
         })
+
         if(err) {
             console.log(err);
             return res.status(400).json(err);
         }
-        
-        if(featuredProducts.length >= 6) {
-            return res.status(400).json({msg: 'There are already 6 Featured Products'})
-        }
 
+        console.log(featuredProducts);
         
-      })
-    
-    // Update that Product's featured property
-    Product.findOneAndUpdate(
-        {_id: id},
-        {$set: {featured: true}},
-        {new: true},
-        (err: any, products: any) => {
-            if(err) {
-                console.log(err);
-                return res.status(400).json(err);
-            }
-            if(!products) {
-                console.log('No Product with that ID');
-                return res.status(400).json({msg: 'No Product with that ID'});
-            }
-            if(products) {
-                console.log('Successfully Featured Product!');
-                return res.status(200).json({msg: 'Successfully Featured Product!'});
-            }
+        
+        if(featuredProducts.length >= 3) {
+            console.log('There are 3 or more Featured Products!');
+            return res.status(400).json({msg: 'There are already 3 Featured Products'})
         }
-    )
     
+        // Update that Product's featured property
+        Product.findOneAndUpdate(
+            {_id: id},
+            {$set: {featured: true}},
+            {new: true},
+            (err: any, product: any) => {
+                if(err) {
+                    console.log(err);
+                    return res.status(400).json(err);
+                }
+                if(!products) {
+                    console.log('No Product with that ID');
+                    return res.status(400).json({msg: 'No Product with that ID'});
+                }
+                if(products) {
+                    console.log('Successfully Featured Product!');
+                    LandingPage.findByIdAndUpdate(
+                        '622d13977c530867d6d8d86b',
+                        {$push: {featuredProducts: product._id}},
+                        {new: true},
+                        (err: any, page: any) => {
+                            if(err) throw err
+                            if(page) {
+                                return res.status(200).json({msg: 'Successfully Featured Product!'});
+                            }
+                        }
+                    )
+                    
+                }
+            }
+        )
+
+      })
 
 }
 exports.unfeatureProduct = (req: any, res: any) => {
@@ -87,7 +108,17 @@ exports.unfeatureProduct = (req: any, res: any) => {
             }
             if(product) {
                 console.log('Successfully Unfeatured Product!');
-                return res.status(200).json({msg: 'Successfully Unfeatured Product!'});
+                LandingPage.findByIdAndUpdate(
+                    '622d13977c530867d6d8d86b',
+                    {$pull: {featuredProducts:  product._id}},
+                    {new: true},
+                    (err: any, page: any) => {
+                        if(err) throw err
+                        if(page) {
+                            return res.status(200).json({msg: 'Successfully Unfeatured Product!'});
+                        }
+                    }
+                )
             }
         }
     )
@@ -100,7 +131,6 @@ exports.addProduct = (req: any, res: any) => {
     console.log('Adding Product');
     let title = req.body.title;    
     let apiID = req.body.apiID;    
-    let datePosted = Date.now();    
     let description = req.body.description;    
     let category = req.body.category;    
     let duration = req.body.duration;    
@@ -110,7 +140,7 @@ exports.addProduct = (req: any, res: any) => {
     let newProduct = Product({
         title,
         apiID,
-        datePosted,
+        datePosted: Date.now(),
         description,
         category,
         duration,
